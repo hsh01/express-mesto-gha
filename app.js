@@ -28,11 +28,11 @@ app.use((req, res, next) => {
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
-app.get('/error', (request, response) => {
-  response.status(404).send('NotFound');
+app.get('/404', (request, response) => {
+  response.status(404).send({ message: 'Page Not Found' });
 });
 app.all('*', (req, res) => {
-  res.redirect('/error');
+  res.redirect('/404');
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
