@@ -19,7 +19,9 @@ module.exports.getUser = (req, res) => {
       return res.send(user);
     })
     .catch((err) => {
-      res.status(500).send({ message: `${err.name}: ${err.message}` });
+      let status = 500;
+      if (err.name === 'ValidationError') status = 400;
+      res.status(status).send({ message: `${err.name}: ${err.message}` });
     });
 };
 
