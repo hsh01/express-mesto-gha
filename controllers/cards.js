@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const Card = require('../models/card');
 
 module.exports.getCards = (req, res) => {
@@ -9,19 +9,21 @@ module.exports.getCards = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-    return res.status(400).send({
+    res.status(400).send({
       message: 'Ошибка валидации cardId',
     });
+    return;
   }
 
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => {
       if (!card) {
-        return res.status(404).send({
+        res.status(404).send({
           message: 'Запрашиваемая карточка не найдена',
         });
+        return;
       }
-      return res.send(card);
+      res.send(card);
     })
     .catch((err) => {
       let status = 500;
@@ -43,55 +45,56 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.likeCard = (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-    return res.status(400).send({
+  if (mongoose.Types.ObjectId.isValid(req.params.cardId)) {
+    Card.findByIdAndUpdate(
+      req.params.cardId,
+      { $addToSet: { likes: req.user._id } },
+      { new: true },
+    )
+      .then((card) => {
+        if (!card) {
+          res.status(404).send({
+            message: 'Запрашиваемая карточка не найдена',
+          });
+          return;
+        }
+        res.send(card);
+      })
+      .catch((err) => {
+        let status = 500;
+        if (err.name === 'ValidationError') status = 400;
+        res.status(status).send({ message: `${err.name}: ${err.message}` });
+      });
+  } else {
+    res.status(400).send({
       message: 'Ошибка валидации cardId',
     });
   }
-
-  Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $addToSet: { likes: req.user._id } },
-    { new: true },
-  )
-    .then((card) => {
-      if (!card) {
-        return res.status(404).send({
-          message: 'Запрашиваемая карточка не найдена',
-        });
-      }
-      return res.send(card);
-    })
-    .catch((err) => {
-      let status = 500;
-      if (err.name === 'ValidationError') status = 400;
-      res.status(status).send({ message: `${err.name}: ${err.message}` });
-    });
 };
 
 module.exports.dislikeCard = (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-    return res.status(400).send({
+  if (mongoose.Types.ObjectId.isValid(req.params.cardId)) {
+    Card.findByIdAndUpdate(
+      req.params.cardId,
+      { $pull: { likes: req.user._id } },
+      { new: true },
+    )
+      .then((card) => {
+        if (!card) {
+          res.status(404).send({
+            message: 'Запрашиваемая карточка не найдена',
+          });
+        }
+        res.send(card);
+      })
+      .catch((err) => {
+        let status = 500;
+        if (err.name === 'ValidationError') status = 400;
+        res.status(status).send({ message: `${err.name}: ${err.message}` });
+      });
+  } else {
+    res.status(400).send({
       message: 'Ошибка валидации cardId',
     });
   }
-
-  Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $pull: { likes: req.user._id } },
-    { new: true },
-  )
-    .then((card) => {
-      if (!card) {
-        return res.status(404).send({
-          message: 'Запрашиваемая карточка не найдена',
-        });
-      }
-      return res.send(card);
-    })
-    .catch((err) => {
-      let status = 500;
-      if (err.name === 'ValidationError') status = 400;
-      res.status(status).send({ message: `${err.name}: ${err.message}` });
-    });
 };

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const User = require('../models/user');
 
 module.exports.getUsers = (req, res) => {
@@ -10,25 +10,26 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUser = (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
-    return res.status(400).send({
+  if (mongoose.Types.ObjectId.isValid(req.params.userId)) {
+    User.findById({ _id: req.params.userId })
+      .then((user) => {
+        if (!user) {
+          res.status(404).send({
+            message: 'Запрашиваемый пользователь не найден',
+          });
+        }
+        res.send(user);
+      })
+      .catch((err) => {
+        let status = 500;
+        if (err.name === 'ValidationError') status = 400;
+        res.status(status).send({ message: `${err.name}: ${err.message}` });
+      });
+  } else {
+    res.status(400).send({
       message: 'Ошибка валидации userId',
     });
   }
-  User.findById({ _id: req.params.userId })
-    .then((user) => {
-      if (!user) {
-        return res.status(404).send({
-          message: 'Запрашиваемый пользователь не найден',
-        });
-      }
-      return res.send(user);
-    })
-    .catch((err) => {
-      let status = 500;
-      if (err.name === 'ValidationError') status = 400;
-      res.status(status).send({ message: `${err.name}: ${err.message}` });
-    });
 };
 
 module.exports.createUser = (req, res) => {
