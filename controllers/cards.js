@@ -1,4 +1,5 @@
 const Card = require('../models/card');
+const mongoose = require("mongoose");
 
 module.exports.getCards = (req, res) => {
   Card.find({})
@@ -7,6 +8,12 @@ module.exports.getCards = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
+    return res.status(400).send({
+      message: 'Ошибка валидации cardId',
+    });
+  }
+
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => {
       if (!card) {
@@ -36,6 +43,12 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.likeCard = (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
+    return res.status(400).send({
+      message: 'Ошибка валидации cardId',
+    });
+  }
+
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -57,6 +70,12 @@ module.exports.likeCard = (req, res) => {
 };
 
 module.exports.dislikeCard = (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
+    return res.status(400).send({
+      message: 'Ошибка валидации cardId',
+    });
+  }
+
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },

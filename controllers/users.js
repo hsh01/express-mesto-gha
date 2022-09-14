@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const mongoose = require("mongoose");
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -9,6 +10,11 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUser = (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
+    return res.status(400).send({
+      message: 'Ошибка валидации userId',
+    });
+  }
   User.findById({ _id: req.params.userId })
     .then((user) => {
       if (!user) {
