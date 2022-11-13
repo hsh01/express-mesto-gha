@@ -35,7 +35,8 @@ module.exports.getUser = (req, res, next) => {
 };
 
 module.exports.getMe = (req, res, next) => {
-  res.send(req.user)
+  User.findById({ _id: req.user._id })
+    .then((user) => res.send(user))
     .catch(next);
 };
 
@@ -125,17 +126,15 @@ module.exports.login = (req, res, next) => {
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
-      //
-      // res.cookie('jwt', token, {
-      //   maxAge: 1000 * 60 * 60 * 24 * 7,
-      //   httpOnly: true,
-      //   sameSite: true,
-      // })
-      //   .end();
 
-      res.send({
-        token: jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' }),
-      });
+      res.cookie('jwt', token, {
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        httpOnly: true,
+        sameSite: true,
+      })
+        .send({
+          token,
+        });
     })
     .catch(() => next(new UnauthorizedError('Необходима авторизация')));
 };
