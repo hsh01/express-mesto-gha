@@ -3,8 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const errorHandler = require('./middlewares/error');
-const { MONGODB_URI, BASE_PATH, PORT } = require('./config');
-
+const { BASE_PATH, PORT } = require('./config');
+const { MONGODB_URI = 'mongodb://localhost:27017/mestodb', } = process.env; // for test ok
 const app = express();
 
 app.use(bodyParser.json());
@@ -17,6 +17,7 @@ mongoose.connect(MONGODB_URI, {
 })
   .catch((err) => console.log(err));
 
+app.use('/', require('./routes/auth'));
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
