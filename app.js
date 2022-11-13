@@ -14,7 +14,8 @@ mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false,
-}).catch((err) => console.log(err));
+})
+  .catch((err) => console.log(err));
 
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
