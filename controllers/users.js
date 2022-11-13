@@ -1,50 +1,73 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const { JWT_SECRET } = require("../config");
+const NotFoundError = require('../errors/not-found-err');
+const BadRequestError = require('../errors/bad-request-error');
+const UnauthorizedError = require("../errors/unauthorized-error");
+const ConflictError = require("../errors/conflict-error");
 
-module.exports.getUsers = (req, res) => {
+
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send(users))
-    .catch((err) => {
-      res.status(500).send({ message: err.message, name: err.name });
-    });
+    .catch(next);
 };
 
-module.exports.getUser = (req, res) => {
-  if (mongoose.Types.ObjectId.isValid(req.params.userId)) {
-    User.findById({ _id: req.params.userId })
-      .then((user) => {
-        if (!user) {
-          res.status(404).send({
-            message: 'Запрашиваемый пользователь не найден',
-          });
-        }
-        res.send(user);
-      })
-      .catch((err) => {
-        let status = 500;
-        if (err.name === 'ValidationError') status = 400;
-        res.status(status).send({ message: `${err.name}: ${err.message}` });
-      });
-  } else {
-    res.status(400).send({
-      message: 'Ошибка валидации userId',
-    });
+module.exports.getUser = (req, res, next) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
+    throw new BadRequestError('Ошибка валидации userId');
   }
-};
 
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-
-  User.create({ name, about, avatar })
-    .then((user) => res.send(user))
+  User.findById({ _id: req.params.userId })
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Запрашиваемый пользователь не найден');
+      }
+      res.send(user);
+    })
     .catch((err) => {
-      let status = 500;
-      if (err.name === 'ValidationError') status = 400;
-      return res.status(status).send({ message: `${err.name}: ${err.message}` });
+      if (err.name === 'ValidationError') {
+        return next(new BadRequestError(err.message));
+      }
+      return next(err);
     });
 };
 
-module.exports.setProfile = (req, res) => {
+module.exports.getMe = (req, res, next) => {
+  res.send(req.user)
+    .catch(next);
+};
+
+module.exports.createUser = (req, res, next) => {
+  const { email, password, name, about, avatar } = req.body;
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      email,
+      password: hash,
+      name,
+      about,
+      avatar
+    }))
+    .then((user) => {
+      res.status(201).send({
+        _id: user._id,
+        email: user.email,
+      });
+    })
+    .catch((err) => {
+      if (err.code === 11000) {
+        return next(new ConflictError("Пользователь с данным email уже существует"));
+      }
+      if (err.name === 'ValidationError') {
+        return next(new BadRequestError(err.message));
+      }
+      return next(err);
+    });
+};
+
+module.exports.setProfile = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
     { _id: req.user._id },
@@ -56,20 +79,19 @@ module.exports.setProfile = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        return res.status(404).send({
-          message: 'Запрашиваемый пользователь не найден',
-        });
+        throw new NotFoundError('Запрашиваемая пользователь не найден');
       }
       return res.send(user);
     })
     .catch((err) => {
-      let status = 500;
-      if (err.name === 'ValidationError') status = 400;
-      return res.status(status).send({ message: `${err.name}: ${err.message}` });
+      if (err.name === 'ValidationError') {
+        return next(new BadRequestError(err.message));
+      }
+      return next(err);
     });
 };
 
-module.exports.setAvatar = (req, res) => {
+module.exports.setAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(
     { _id: req.user._id },
@@ -81,15 +103,31 @@ module.exports.setAvatar = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        return res.status(404).send({
-          message: 'Запрашиваемый пользователь не найден',
-        });
+        throw new NotFoundError('Запрашиваемая пользователь не найден');
       }
       return res.send(user);
     })
     .catch((err) => {
-      let status = 500;
-      if (err.name === 'ValidationError') status = 400;
-      return res.status(status).send({ message: `${err.name}: ${err.message}` });
+      if (err.name === 'ValidationError') {
+        return next(new BadRequestError(err.message));
+      }
+      return next(err);
     });
+};
+
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
+
+      res.cookie('jwt', token, {
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        httpOnly: true,
+        sameSite: true
+      })
+        .end();
+    })
+    .catch((err) => next(new UnauthorizedError('Необходима авторизация')));
 };
