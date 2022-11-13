@@ -2,12 +2,11 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const { JWT_SECRET } = require("../config");
+const { JWT_SECRET } = require('../config');
 const NotFoundError = require('../errors/not-found-err');
 const BadRequestError = require('../errors/bad-request-error');
-const UnauthorizedError = require("../errors/unauthorized-error");
-const ConflictError = require("../errors/conflict-error");
-
+const UnauthorizedError = require('../errors/unauthorized-error');
+const ConflictError = require('../errors/conflict-error');
 
 module.exports.getUsers = (req, res, next) => {
   User.find({})
@@ -41,14 +40,16 @@ module.exports.getMe = (req, res, next) => {
 };
 
 module.exports.createUser = (req, res, next) => {
-  const { email, password, name, about, avatar } = req.body;
+  const {
+    email, password, name, about, avatar,
+  } = req.body;
   bcrypt.hash(password, 10)
     .then((hash) => User.create({
       email,
       password: hash,
       name,
       about,
-      avatar
+      avatar,
     }))
     .then((user) => {
       res.status(201).send({
@@ -58,7 +59,7 @@ module.exports.createUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.code === 11000) {
-        return next(new ConflictError("Пользователь с данным email уже существует"));
+        return next(new ConflictError('Пользователь с данным email уже существует'));
       }
       if (err.name === 'ValidationError') {
         return next(new BadRequestError(err.message));
@@ -125,9 +126,9 @@ module.exports.login = (req, res, next) => {
       res.cookie('jwt', token, {
         maxAge: 1000 * 60 * 60 * 24 * 7,
         httpOnly: true,
-        sameSite: true
+        sameSite: true,
       })
         .end();
     })
-    .catch((err) => next(new UnauthorizedError('Необходима авторизация')));
+    .catch(() => next(new UnauthorizedError('Необходима авторизация')));
 };

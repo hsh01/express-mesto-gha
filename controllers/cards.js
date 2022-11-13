@@ -2,8 +2,7 @@ const mongoose = require('mongoose');
 const Card = require('../models/card');
 const NotFoundError = require('../errors/not-found-err');
 const BadRequestError = require('../errors/bad-request-error');
-const ForbiddenError = require("../errors/forbidden-error");
-
+const ForbiddenError = require('../errors/forbidden-error');
 
 module.exports.getCards = (req, res, next) => {
   Card.find({})
@@ -53,7 +52,7 @@ module.exports.likeCard = (req, res, next) => {
   )
     .then((card) => {
       if (!card) {
-        throw new NotFoundError('Запрашиваемая карточка не найдена')
+        throw new NotFoundError('Запрашиваемая карточка не найдена');
       }
       res.send(card);
     })
@@ -77,7 +76,7 @@ module.exports.dislikeCard = (req, res, next) => {
   )
     .then((card) => {
       if (!card) {
-        throw new NotFoundError('Запрашиваемая карточка не найдена')
+        throw new NotFoundError('Запрашиваемая карточка не найдена');
       }
       res.send(card);
     })

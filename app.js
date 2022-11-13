@@ -3,7 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const errorHandler = require('./middlewares/error');
-const { MONGODB_URI, BASE_PATH, PORT } = require("./config");
+const { MONGODB_URI, BASE_PATH, PORT } = require('./config');
 
 const app = express();
 
