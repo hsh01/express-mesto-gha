@@ -5,13 +5,13 @@ const auth = require('../middlewares/auth');
 const {
   getUser, getUsers, setProfile, setAvatar, getMe,
 } = require('../controllers/users');
-const { UserProfileSchema, UserAvatarSchema } = require('../schemas/user');
+const { UserProfileSchema, UserAvatarSchema, UserIdParamSchema } = require('../schemas/user');
 
 router.use(auth);
 
 router.get('/', getUsers);
 router.get('/me', getMe);
-router.get('/:userId', getUser);
+router.get('/:userId', celebrate(UserIdParamSchema), getUser);
 router.patch('/me', celebrate(UserProfileSchema), setProfile);
 router.patch('/me/avatar', celebrate(UserAvatarSchema), setAvatar);
 
