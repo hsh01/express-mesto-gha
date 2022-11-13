@@ -2,9 +2,11 @@ const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const { errors } = require('celebrate');
 const errorHandler = require('./middlewares/error');
 const { BASE_PATH, PORT } = require('./config');
-const { MONGODB_URI = 'mongodb://localhost:27017/mestodb', } = process.env; // for test ok
+
+const { MONGODB_URI = 'mongodb://localhost:27017/mestodb' } = process.env; // for test ok
 const app = express();
 
 app.use(bodyParser.json());
@@ -29,6 +31,7 @@ app.all('*', (req, res) => {
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(errors());
 app.use(errorHandler);
 
 app.listen(PORT, () => {
