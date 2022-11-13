@@ -3,7 +3,7 @@ const { Joi } = require('celebrate');
 const CardInSchema = {
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
-    link: Joi.string().uri({
+    link: Joi.string().required().uri({
       scheme: [
         /https?/,
       ],
@@ -14,10 +14,10 @@ const CardInSchema = {
   }),
 };
 
-const CardDeleteSchema = {
+const CardIdParamSchema = {
   params: Joi.object().keys({
     cardId: Joi.string().alphanum().length(24),
   }),
 };
 
-module.exports = { CardInSchema, CardDeleteSchema };
+module.exports = { CardInSchema, CardIdParamSchema };

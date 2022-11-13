@@ -39,10 +39,8 @@ const UserAvatarSchema = {
 };
 
 const UserIdParamSchema = {
-  body: Joi.object().keys({
-    params: Joi.object().keys({
-      userId: Joi.string().alphanum().length(24),
-    }),
+  params: Joi.object().keys({
+    userId: Joi.string().alphanum().length(24),
   }),
 };
 

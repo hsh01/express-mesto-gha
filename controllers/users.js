@@ -36,7 +36,9 @@ module.exports.getUser = (req, res, next) => {
 
 module.exports.getMe = (req, res, next) => {
   User.findById({ _id: req.user._id })
-    .then((user) => res.send(user))
+    .then((user) => {
+      res.send(user)
+    })
     .catch(next);
 };
 

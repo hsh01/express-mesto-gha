@@ -15,15 +15,17 @@ module.exports.deleteCard = (req, res, next) => {
     throw new BadRequestError('Ошибка валидации cardId');
   }
 
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Запрашиваемая карточка не найдена');
       }
-      if (card.owner._id !== req.user._id) {
+      if (card.owner._id.toString() !== req.user._id.toString()) {
         throw new ForbiddenError('Невозможно удалить чужую карточку');
       }
-      res.send(card);
+      card.remove()
+        .then(() => res.send({ "success": true }))
+        .catch(next);
     })
     .catch(next);
 };
