@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
@@ -15,14 +14,10 @@ module.exports.getUsers = (req, res, next) => {
 };
 
 module.exports.getUser = (req, res, next) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
-    throw new BadRequestError('Ошибка валидации userId');
-  }
-
   User.findById({ _id: req.params.userId })
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('Запрашиваемый пользователь не найден');
+        next(new NotFoundError('Запрашиваемый пользователь не найден'));
       }
       res.send(user);
     })
@@ -86,7 +81,7 @@ module.exports.setProfile = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('Запрашиваемая пользователь не найден');
+        next(new NotFoundError('Запрашиваемая пользователь не найден'));
       }
       return res.send(user);
     })
@@ -108,12 +103,8 @@ module.exports.setAvatar = (req, res, next) => {
       runValidators: true,
     },
   )
-    .then((user) => {
-      if (!user) {
-        throw new NotFoundError('Запрашиваемая пользователь не найден');
-      }
-      return res.send(user);
-    })
+    .orFail(new NotFoundError('Запрашиваемая пользователь не найден'))
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return next(new BadRequestError(err.message));

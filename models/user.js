@@ -12,7 +12,6 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      minlength: 8,
       required: true,
       select: false,
     },
@@ -34,7 +33,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       validate: [(value) => {
-        const regex = /^https?:\/\/[-._~:\/?#\[\]@!$&'()*+,;=\w\d]+$/mi;// eslint-disable-line
+        const regex = /^https?:\/\/[-._~:\/?#\[\]!$&'()*+,;=\w\d]+$/mi;// eslint-disable-line
         return !!value.match(regex);
       }, 'Неверная ссылка'],
       default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',

@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const Card = require('../models/card');
 const NotFoundError = require('../errors/not-found-err');
 const BadRequestError = require('../errors/bad-request-error');
@@ -11,23 +10,20 @@ module.exports.getCards = (req, res, next) => {
 };
 
 module.exports.deleteCard = (req, res, next) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-    throw new BadRequestError('Ошибка валидации cardId');
-  }
-
-  Card.findById(req.params.cardId)
+  Card.findById(req.params.cardId).orFail(new NotFoundError('Запрашиваемая карточка не найдена'))
     .then((card) => {
-      if (!card) {
-        throw new NotFoundError('Запрашиваемая карточка не найдена');
-      }
       if (card.owner._id.toString() !== req.user._id.toString()) {
-        throw new ForbiddenError('Невозможно удалить чужую карточку');
+        next(new ForbiddenError('Невозможно удалить чужую карточку'));
       }
-      card.remove()
-        .then(() => res.send({ success: true }))
-        .catch(next);
+      return card.remove();
     })
-    .catch(next);
+    .then(() => res.send({ success: true }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return next(new BadRequestError(err.message));
+      }
+      return next(err);
+    });
 };
 
 module.exports.createCard = (req, res, next) => {
@@ -43,21 +39,13 @@ module.exports.createCard = (req, res, next) => {
 };
 
 module.exports.likeCard = (req, res, next) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-    throw new BadRequestError('Ошибка валидации cardId');
-  }
-
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => {
-      if (!card) {
-        throw new NotFoundError('Запрашиваемая карточка не найдена');
-      }
-      res.send(card);
-    })
+    .orFail(new NotFoundError('Запрашиваемая карточка не найдена'))
+    .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return next(new BadRequestError(err.message));
@@ -67,21 +55,13 @@ module.exports.likeCard = (req, res, next) => {
 };
 
 module.exports.dislikeCard = (req, res, next) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-    throw new BadRequestError('Ошибка валидации cardId');
-  }
-
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => {
-      if (!card) {
-        throw new NotFoundError('Запрашиваемая карточка не найдена');
-      }
-      res.send(card);
-    })
+    .orFail(new NotFoundError('Запрашиваемая карточка не найдена'))
+    .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return next(new BadRequestError(err.message));

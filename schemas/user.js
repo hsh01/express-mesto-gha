@@ -3,19 +3,19 @@ const { Joi } = require('celebrate');
 const UserAuthSchema = {
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
+    password: Joi.string().required(),
   }),
 };
 
 const UserCreateSchema = {
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
+    password: Joi.string().required(),
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
     avatar: Joi.string().uri({
       scheme: [
-        /https?/,
+        /^https?:\/\/[-._~:\/?#\[\]!$&'()*+,;=\w\d]+$/mi,// eslint-disable-line
       ],
     }),
   }),
@@ -32,7 +32,7 @@ const UserAvatarSchema = {
   body: Joi.object().keys({
     avatar: Joi.string().required().uri({
       scheme: [
-        /https?/,
+        /^https?:\/\/[-._~:\/?#\[\]!$&'()*+,;=\w\d]+$/,// eslint-disable-line
       ],
     }),
   }),
@@ -40,7 +40,8 @@ const UserAvatarSchema = {
 
 const UserIdParamSchema = {
   params: Joi.object().keys({
-    userId: Joi.string().alphanum().length(24),
+    userId: Joi.string().required().hex().alphanum()
+      .length(24),
   }),
 };
 

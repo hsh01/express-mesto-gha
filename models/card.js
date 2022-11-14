@@ -11,6 +11,10 @@ const cardSchema = new mongoose.Schema(
     link: {
       type: String,
       required: true,
+      validate: [(value) => {
+        const regex = /^https?:\/\/[-._~:\/?#\[\]!$&'()*+,;=\w\d]+$/mi;// eslint-disable-line
+        return !!value.match(regex);
+      }, 'Неверная ссылка'],
     },
     owner: {
       type: mongoose.Schema.Types.ObjectId,

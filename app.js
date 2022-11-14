@@ -1,14 +1,16 @@
-const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
+const bodyParser = require('body-parser');
+const routes = require('./routes');
 const errorHandler = require('./middlewares/error');
 const { BASE_PATH, PORT } = require('./config');
+const { requestLogger } = require('./middlewares/logger');
 
 const { MONGODB_URI = 'mongodb://localhost:27017/mestodb' } = process.env; // for test ok
 const app = express();
 
+app.use(requestLogger);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -19,18 +21,8 @@ mongoose.connect(MONGODB_URI, {
 })
   .catch((err) => console.log(err));
 
-app.use('/', require('./routes/auth'));
-app.use('/users', require('./routes/users'));
-app.use('/cards', require('./routes/cards'));
+app.use(routes);
 
-app.get('/404', (request, response) => {
-  response.status(404).send({ message: 'Page Not Found' });
-});
-app.all('*', (req, res) => {
-  res.redirect('/404');
-});
-
-app.use(express.static(path.join(__dirname, 'public')));
 app.use(errors());
 app.use(errorHandler);
 
