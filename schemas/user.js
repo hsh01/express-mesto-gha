@@ -13,11 +13,7 @@ const UserCreateSchema = {
     password: Joi.string().required(),
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string().uri({
-      scheme: [
-        /^https?:\/\/[-._~:\/?#\[\]!$&'()*+,;=\w\d]+$/mi,// eslint-disable-line
-      ],
-    }),
+    avatar: Joi.string().regex(/^https?:\/\/[-._~:/?#[\]!$&'()*+,;=\w\d]+$/i),
   }),
 };
 
@@ -30,11 +26,7 @@ const UserProfileSchema = {
 
 const UserAvatarSchema = {
   body: Joi.object().keys({
-    avatar: Joi.string().required().uri({
-      scheme: [
-        /^https?:\/\/[-._~:\/?#\[\]!$&'()*+,;=\w\d]+$/,// eslint-disable-line
-      ],
-    }),
+    avatar: Joi.string().regex(/^https?:\/\/[-._~:/?#[\]!$&'()*+,;=\w\d]+$/i),
   }),
 };
 

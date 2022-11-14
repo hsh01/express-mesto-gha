@@ -1,13 +1,10 @@
 const router = require('express').Router();
 const { celebrate } = require('celebrate');
-const auth = require('../middlewares/auth');
 
 const {
   getUser, getUsers, setProfile, setAvatar, getMe,
 } = require('../controllers/users');
 const { UserProfileSchema, UserAvatarSchema, UserIdParamSchema } = require('../schemas/user');
-
-router.use(auth);
 
 router.get('/', getUsers);
 router.get('/me', getMe);
