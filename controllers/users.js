@@ -86,7 +86,7 @@ module.exports.setProfile = (req, res, next) => {
       return res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'ValidationError'|| err.name === 'CastError') {
         return next(new BadRequestError(err.message));
       }
       return next(err);
@@ -106,7 +106,7 @@ module.exports.setAvatar = (req, res, next) => {
     .orFail(new NotFoundError('Запрашиваемая пользователь не найден'))
     .then((user) => res.send(user))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'ValidationError'|| err.name === 'CastError') {
         return next(new BadRequestError(err.message));
       }
       return next(err);

@@ -14,12 +14,13 @@ module.exports.deleteCard = (req, res, next) => {
     .then((card) => {
       if (card.owner._id.toString() !== req.user._id.toString()) {
         next(new ForbiddenError('Невозможно удалить чужую карточку'));
+      } else {
+        return card.remove();
       }
-      return card.remove();
     })
     .then(() => res.send({ success: true }))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         return next(new BadRequestError(err.message));
       }
       return next(err);
@@ -31,7 +32,7 @@ module.exports.createCard = (req, res, next) => {
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.send(card))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         return next(new BadRequestError(err.message));
       }
       return next(err);
@@ -47,7 +48,7 @@ module.exports.likeCard = (req, res, next) => {
     .orFail(new NotFoundError('Запрашиваемая карточка не найдена'))
     .then((card) => res.send(card))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'ValidationError'|| err.name === 'CastError') {
         return next(new BadRequestError(err.message));
       }
       return next(err);
@@ -63,7 +64,7 @@ module.exports.dislikeCard = (req, res, next) => {
     .orFail(new NotFoundError('Запрашиваемая карточка не найдена'))
     .then((card) => res.send(card))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'ValidationError'|| err.name === 'CastError') {
         return next(new BadRequestError(err.message));
       }
       return next(err);
