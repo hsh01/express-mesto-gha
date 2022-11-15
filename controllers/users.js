@@ -17,12 +17,12 @@ module.exports.getUser = (req, res, next) => {
   User.findById({ _id: req.params.userId })
     .then((user) => {
       if (!user) {
-        next(new NotFoundError('Запрашиваемый пользователь не найден'));
+        throw new NotFoundError('Запрашиваемый пользователь не найден');
       }
       res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         return next(new BadRequestError(err.message));
       }
       return next(err);
@@ -81,7 +81,7 @@ module.exports.setProfile = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        next(new NotFoundError('Запрашиваемая пользователь не найден'));
+        throw new NotFoundError('Запрашиваемая пользователь не найден');
       }
       return res.send(user);
     })
