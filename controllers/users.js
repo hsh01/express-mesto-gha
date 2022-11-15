@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const { JWT_SECRET } = require('../config');
-const NotFoundError = require('../errors/not-found-err');
+const NotFoundError = require('../errors/not-found-error');
 const BadRequestError = require('../errors/bad-request-error');
 const UnauthorizedError = require('../errors/unauthorized-error');
 const ConflictError = require('../errors/conflict-error');
@@ -86,7 +86,7 @@ module.exports.setProfile = (req, res, next) => {
       return res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError'|| err.name === 'CastError') {
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
         return next(new BadRequestError(err.message));
       }
       return next(err);
@@ -106,7 +106,7 @@ module.exports.setAvatar = (req, res, next) => {
     .orFail(new NotFoundError('Запрашиваемая пользователь не найден'))
     .then((user) => res.send(user))
     .catch((err) => {
-      if (err.name === 'ValidationError'|| err.name === 'CastError') {
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
         return next(new BadRequestError(err.message));
       }
       return next(err);

@@ -1,5 +1,5 @@
 const Card = require('../models/card');
-const NotFoundError = require('../errors/not-found-err');
+const NotFoundError = require('../errors/not-found-error');
 const BadRequestError = require('../errors/bad-request-error');
 const ForbiddenError = require('../errors/forbidden-error');
 
@@ -12,11 +12,10 @@ module.exports.getCards = (req, res, next) => {
 module.exports.deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId).orFail(new NotFoundError('Запрашиваемая карточка не найдена'))
     .then((card) => {
-      if (card.owner._id.toString() !== req.user._id.toString()) {
-        next(new ForbiddenError('Невозможно удалить чужую карточку'));
-      } else {
+      if (card.owner._id.toString() === req.user._id.toString()) {
         return card.remove();
       }
+      throw new ForbiddenError('Невозможно удалить чужую карточку');
     })
     .then(() => res.send({ success: true }))
     .catch((err) => {
@@ -48,7 +47,7 @@ module.exports.likeCard = (req, res, next) => {
     .orFail(new NotFoundError('Запрашиваемая карточка не найдена'))
     .then((card) => res.send(card))
     .catch((err) => {
-      if (err.name === 'ValidationError'|| err.name === 'CastError') {
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
         return next(new BadRequestError(err.message));
       }
       return next(err);
@@ -64,7 +63,7 @@ module.exports.dislikeCard = (req, res, next) => {
     .orFail(new NotFoundError('Запрашиваемая карточка не найдена'))
     .then((card) => res.send(card))
     .catch((err) => {
-      if (err.name === 'ValidationError'|| err.name === 'CastError') {
+      if (err.name === 'ValidationError' || err.name === 'CastError') {
         return next(new BadRequestError(err.message));
       }
       return next(err);
